@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chris LaFournaise</title>
+<style>
+/* Public version. Faint drawing-sheet theme: grid paper, mono labels, schematic diagram. */
+:root {
+  --desk: #E3E6E4;
+  --sheet: #FBFCFA;
+  --grid: rgba(30, 42, 50, 0.04);
+  --ink: #1E2A32;
+  --body: #3D4A52;
+  --muted: #6B7880;
+  --wire: #2B3940;
+  --copper: #A8692B;
+  --net: #2A5FA8;
+
+  --field: #F8F4EA;
+  --field-grid: rgba(92, 64, 36, 0.05);
+  --soil: #5C4024;
+
+  --display: "Avenir Next", "Helvetica Neue", sans-serif;
+  --text: -apple-system, "SF Pro Text", "Helvetica Neue", sans-serif;
+  --mono: "SF Mono", ui-monospace, Menlo, monospace;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 64px; }
+body { margin: 0; background: var(--desk); color: var(--ink); font: 16.5px/1.62 var(--text); -webkit-font-smoothing: antialiased; }
+:focus-visible { outline: 2px solid var(--net); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { transition: none !important; } }
+
+/* Top bar */
+.index { position: sticky; top: 0; z-index: 20; background: rgba(227,230,228,0.92); backdrop-filter: blur(8px); border-bottom: 1px solid rgba(30,42,50,0.12); }
+.index ul { max-width: 1080px; margin: 0 auto; padding: 0 24px; height: 48px; display: flex; align-items: center; gap: 4px; list-style: none; }
+.index li:first-child { margin-right: auto; font: 700 12px/1 var(--mono); letter-spacing: 0.1em; color: var(--ink); }
+.index a { display: block; padding: 6px 10px; font: 600 11.5px/1 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); text-decoration: none; border-bottom: 1.5px solid transparent; }
+.index a:hover, .index a.on { color: var(--net); }
+.index a.on { border-bottom-color: var(--net); }
+
+/* Sheets */
+.sheet {
+  max-width: 1080px; margin: 40px auto; padding: 64px 72px 48px;
+  background: linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / 24px 24px,
+              linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0 / 24px 24px,
+              var(--sheet);
+  border: 1px solid rgba(30,42,50,0.18);
+  box-shadow: 0 16px 40px rgba(30,42,50,0.10);
+}
+.sheet.two { --ink: #3A2A18; --body: #5A4632; --muted: #8A7458; --wire: var(--soil);
+  background: linear-gradient(var(--field-grid) 1px, transparent 1px) 0 0 / 24px 24px,
+              linear-gradient(90deg, var(--field-grid) 1px, transparent 1px) 0 0 / 24px 24px,
+              var(--field); }
+
+h1, h2, h3, h4 { margin: 0; font-family: var(--display); font-weight: 600; color: var(--ink); }
+h1 { font-size: clamp(2.8rem, 5.5vw, 4.2rem); line-height: 1.02; letter-spacing: -0.015em; margin: 16px 0 20px; }
+h2 { font-size: 2rem; line-height: 1.1; margin: 10px 0 0; }
+h3 { font-size: 1.3rem; line-height: 1.2; }
+h4 { font-size: 1.05rem; line-height: 1.25; }
+p { margin: 0; }
+.eyebrow { font: 600 11.5px/1 var(--mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--copper); }
+.eyebrow .no { color: var(--muted); margin-right: 10px; }
+.lede { max-width: 740px; font-size: 1.15rem; color: var(--body); text-wrap: pretty; }
+.available { margin-top: 16px; font: 600 1.05rem/1.4 var(--text); color: var(--net); }
+.contact { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px 22px; font: 600 12.5px/1.4 var(--mono); }
+.contact a { color: var(--ink); text-decoration: none; border-bottom: 1px solid rgba(30,42,50,0.3); }
+.contact a:hover { color: var(--net); border-bottom-color: var(--net); }
+.prose { max-width: 780px; color: var(--body); }
+.prose p { text-wrap: pretty; }
+.prose p + p { margin-top: 14px; }
+section { margin-top: 88px; padding-top: 28px; border-top: 1px solid rgba(30,42,50,0.14); }
+section > .prose, section > .lede { margin-top: 20px; }
+
+/* Tags as net labels: text sitting on a wire that starts at a junction dot */
+.nets { list-style: none; padding: 0; margin: 26px 0 0; display: flex; flex-wrap: wrap; gap: 12px 12px; }
+.nets li { display: flex; align-items: flex-end; }
+.nets li::before { content: ""; flex: none; width: 6px; height: 6px; margin: 0 -3px -2.4px 0; border-radius: 50%; background: var(--wire); }
+.net { padding: 0 2px 3px 14px; border-bottom: 1.2px solid var(--wire); font: 600 11.5px/1 var(--mono); letter-spacing: 0.03em; text-transform: uppercase; color: var(--net); white-space: nowrap; }
+.sheet.two .net { color: var(--soil); }
+
+/* Hero: text beside a framed portrait */
+.hero { display: grid; grid-template-columns: 1fr 220px; gap: 48px; align-items: center; }
+.portrait { margin: 0; border: 1px solid rgba(30,42,50,0.3); background: var(--sheet); padding: 6px; }
+.portrait img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; object-position: 50% 0; }
+
+
+/* Project blocks */
+.block { position: relative; margin-top: 30px; padding: 28px 32px 24px; border: 1px solid rgba(30,42,50,0.35); background: rgba(251,252,250,0.9); }
+.block .refdes { position: absolute; top: -10px; left: 20px; padding: 0 8px; background: var(--sheet); font: 600 11.5px/20px var(--mono); letter-spacing: 0.08em; color: var(--copper); }
+.block h3 { margin-bottom: 4px; }
+.block .prose { margin-top: 10px; }
+.block .prose p + p { margin-top: 12px; }
+.block ul.feat { margin: 14px 0 0; padding-left: 18px; color: var(--body); max-width: 780px; }
+.block ul.feat li { margin: 4px 0; }
+.removed { margin-top: 14px; font-size: 15px; color: var(--body); }
+.removed span { font: 600 11px/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--copper); margin-right: 6px; }
+.tags { margin-top: 12px; font: 600 11px/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.facts { display: flex; flex-wrap: wrap; gap: 6px 22px; margin: 16px 0 0; padding: 0; list-style: none; font: 600 12.5px/1.4 var(--mono); color: var(--ink); }
+.facts li::before { content: "● "; color: var(--copper); font-size: 8px; vertical-align: 2px; }
+
+/* Diagram */
+.diagram { margin-top: 22px; }
+.diagram svg { display: block; width: 100%; height: auto; overflow: visible; }
+.diagram .wire { fill: none; stroke: var(--wire); stroke-width: 1.4; }
+.diagram .junction { fill: var(--wire); }
+.diagram .term { fill: var(--sheet); stroke: var(--wire); stroke-width: 1.4; }
+.diagram .sym { fill: var(--sheet); stroke: var(--wire); stroke-width: 1.3; }
+.diagram .sym.main { stroke: var(--copper); stroke-width: 1.8; }
+.diagram .sym.legacy { stroke-dasharray: 5 4; }
+.diagram .netlbl { fill: var(--sheet); stroke: var(--net); stroke-width: 1.2; }
+.diagram .nt { font: 600 11px var(--mono); fill: var(--net); }
+.diagram .t { font: 600 12.5px var(--mono); fill: var(--ink); }
+.diagram .s { font: 11px var(--mono); fill: var(--body); }
+.diagram .pin { font: 10px var(--mono); fill: var(--body); }
+.diagram .zig { fill: none; stroke: var(--copper); stroke-width: 1.6; stroke-linejoin: round; }
+.diagram .rl { font: 600 10.5px var(--mono); fill: var(--copper); }
+.api .path, .api .ground, .api .bridge { transition: opacity 240ms ease; }
+.api .ground { opacity: 0; }
+.api.before .ground { opacity: 1; }
+.api.before .bridge { opacity: 0; }
+.api.before .path.new { opacity: 0; }
+.switch { display: inline-flex; align-items: center; gap: 10px; margin-top: 16px; padding: 7px 14px 7px 10px; background: var(--sheet); border: 1.3px solid var(--net); border-radius: 3px; box-shadow: 0 1px 0 rgba(42,95,168,0.25); cursor: pointer; font: 600 11px/1 var(--mono); letter-spacing: 0.06em; color: var(--muted); transition: background 140ms ease; }
+.switch:hover { background: rgba(42,95,168,0.07); }
+.switch:active { transform: translateY(1px); box-shadow: none; }
+.switch .track { position: relative; width: 30px; height: 16px; border-radius: 8px; background: rgba(30,42,50,0.18); transition: background 180ms ease; }
+.switch .track::after { content: ""; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: var(--sheet); box-shadow: 0 1px 2px rgba(0,0,0,0.25); transition: transform 180ms ease; }
+.switch[aria-pressed="true"] .track { background: var(--net); }
+.switch[aria-pressed="true"] .track::after { transform: translateX(14px); }
+.switch[aria-pressed="true"] .lbl-new, .switch[aria-pressed="false"] .lbl-old { color: var(--net); }
+
+/* Experience */
+.readouts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 26px; }
+.readout { border: 1px solid rgba(30,42,50,0.3); background: var(--sheet); padding: 12px 14px; }
+.readout b { display: block; font-family: var(--display); font-weight: 600; font-size: 1.7rem; line-height: 1; color: var(--ink); }
+.readout span { display: block; margin-top: 6px; font-size: 13.5px; color: var(--body); }
+.bus { list-style: none; margin: 30px 0 0; padding: 0 0 0 36px; position: relative; }
+.bus::before { content: ""; position: absolute; left: 8px; top: 8px; bottom: 14px; width: 1.4px; background: var(--wire); }
+.bus li { position: relative; padding: 0 0 20px; }
+.bus li::before { content: ""; position: absolute; left: -32px; top: 6px; width: 7px; height: 7px; border-radius: 50%; background: var(--wire); }
+.bus .yr { font: 600 12px/1 var(--mono); letter-spacing: 0.05em; color: var(--copper); }
+.bus .what { display: block; margin-top: 5px; color: var(--body); max-width: 780px; }
+.bus .q { font-style: italic; }
+
+/* Photos */
+.fig { margin: 0; border: 1px solid rgba(30,42,50,0.3); background: var(--sheet); padding: 6px; display: flex; flex-direction: column; }
+.sheet.two .fig { background: #FBF8F0; border-color: rgba(92,64,36,0.35); }
+.fig img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.fig figcaption { margin-top: 6px; font: 600 10.5px/1.3 var(--mono); letter-spacing: 0.06em; color: var(--muted); text-transform: uppercase; }
+.bg-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 32px; margin-top: 24px; align-items: start; }
+.bg-grid .fig img { height: 260px; }
+.farm-hero { margin-top: 24px; height: 360px; }
+.farm-hero img { flex: 1; min-height: 0; }
+.farm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 28px; }
+.farm-photos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 28px; }
+.farm-photos .fig img { height: 200px; }
+.sheet.two .eyebrow { color: #9A5B22; }
+.link { color: var(--net); }
+.colophon { margin-top: 40px; padding-top: 14px; border-top: 1px solid rgba(92,64,36,0.2); font: 12px/1.5 var(--mono); color: var(--muted); }
+</style>
+</head>
+<body>
+
+<nav class="index" aria-label="Sections">
+  <ul>
+    <li>C. LAFOURNAISE</li>
+    <li><a href="#build">How I build</a></li>
+    <li><a href="#work">Work</a></li>
+    <li><a href="#lead">Leadership</a></li>
+    <li><a href="#experience">Experience</a></li>
+    <li><a href="#background">Background</a></li>
+    <li><a href="#farm">Farm</a></li>
+  </ul>
+</nav>
+
+<div class="sheet">
+  <header>
+    <div class="hero">
+      <div>
+        <div class="eyebrow">Engineering leader · Software builder</div>
+        <h1>Chris LaFournaise</h1>
+        <p class="lede">I lead a software development team in Apple Hardware Engineering, and I build production software with AI coding agents. Over thirty years in the industry I've often been among the first to put a new technology to work.</p>
+        <p class="available">I'm open to new opportunities as a software builder.</p>
+        <p class="contact"><a href="mailto:clafournaise@gmail.com">clafournaise@gmail.com</a><a href="https://www.linkedin.com/in/clafournaise/">linkedin.com/in/clafournaise</a></p>
+      </div>
+      <figure class="portrait"><img src="img/chris.jpg" alt="Chris LaFournaise"></figure>
+    </div>
+    <ul class="nets">
+      <li><span class="net">Bay Area, CA</span></li><li><span class="net">Apple, 11 yrs</span></li><li><span class="net">Manager since 1996</span></li><li><span class="net">Unix since 1989</span></li><li><span class="net">B.S., Oregon State</span></li><li><span class="net">Farmer · coffee roaster</span></li>
+    </ul>
+  </header>
+
+  <section id="build">
+    <div class="eyebrow"><span class="no">01</span>How I build software</div>
+    <h2>I direct AI agents the way I've led teams.</h2>
+    <div class="prose">
+      <p>I've managed software teams since 1996, and directing AI coding agents takes the same skills: set the direction, give context, review the work and hold it to a standard. With agents writing the code, I build and ship production software myself, often in a few weeks.</p>
+      <p>Thirty years of hands-on infrastructure work means very little of the stack is abstract to me, from hardware to operating system to runtime.</p>
+    </div>
+  </section>
+
+  <section id="work">
+    <div class="eyebrow"><span class="no">02</span>Selected work</div>
+    <h2>Each one removed a source of friction.</h2>
+
+    <div class="block">
+      <span class="refdes">01 · PARTS DATA API</span>
+      <h3>A modern API for a legacy ECAD parts database, in about three weeks</h3>
+      <div class="prose">
+        <p>Hardware engineers rely on a large electronic parts database that for years could only be reached through its web interface and a brittle legacy API. Once AI tools arrived, engineers wanted to write code against it.</p>
+        <p>I learned the search engine underneath the application, mapped how it was configured (dimensions, queries, fields and taxonomy) and built a REST API around it. The legacy application didn't change and didn't need to be re-tested.</p>
+      </div>
+      <ul class="facts"><li>5 days to work out</li><li>2 weeks to test, adjust and deploy</li><li>Now a dependency for AI agents and internal tools</li></ul>
+
+      <div class="diagram api after" id="apiDiagram" aria-label="Before the new API, AI agents and scripts had no connection and went to ground, and web UI users reached the parts application directly. After, AI agents and scripts call the new API, which queries the search engine the parts application runs on. Web UI users keep the old route. The parts application and search engine are unchanged.">
+        <svg viewBox="0 0 920 175" role="img">
+          <polygon class="netlbl" points="0,8 150,8 164,22 150,36 0,36"/><text class="nt" x="10" y="27">AI_AGENTS</text>
+          <polygon class="netlbl" points="0,48 150,48 164,62 150,76 0,76"/><text class="nt" x="10" y="67">SCRIPTS_TOOLS</text>
+          <polygon class="netlbl" points="0,128 150,128 164,142 150,156 0,156"/><text class="nt" x="10" y="147">WEB_UI_USERS</text>
+          <path class="wire" d="M164 22 H186 M164 62 H186"/>
+          <g class="ground"><path class="wire" d="M186 22 H200 V96 M186 62 H200 M188 96 H212 M192 101 H208 M196 106 H204"/><circle class="junction" cx="200" cy="62" r="3.5"/></g>
+          <path class="wire bridge" d="M186 22 H220 M186 62 H220"/>
+          <g class="path new">
+            <path class="wire" d="M220 22 V62"/>
+            <circle class="junction" cx="220" cy="42" r="3.5"/>
+            <path class="wire" d="M220 42 H330"/>
+            <rect class="sym main" x="330" y="10" width="230" height="64"/>
+            <text class="pin" x="338" y="46">REST</text><text class="pin" x="530" y="46">SDK</text>
+            <text class="t" x="400" y="38">NEW API</text><text class="s" x="372" y="60">auth · access · limits</text>
+            <path class="wire" d="M560 42 H780"/>
+          </g>
+          <path class="wire" d="M164 142 H400"/>
+          <path class="zig" d="M400 142 l8 -9 l14 18 l14 -18 l14 18 l14 -18 l14 18 l14 -18 l8 9"/>
+          <text class="rl" x="398" y="122">R · WEB UI, BRITTLE API</text>
+          <path class="wire" d="M500 142 H620"/>
+          <rect class="sym legacy" x="620" y="114" width="140" height="56"/>
+          <text class="t" x="640" y="139">PARTS APP</text><text class="s" x="640" y="158">unchanged</text>
+          <path class="wire" d="M760 142 H850 V74"/>
+          <rect class="sym legacy" x="780" y="10" width="140" height="64"/>
+          <text class="t" x="796" y="38">SEARCH ENGINE</text><text class="s" x="796" y="58">unchanged</text>
+        </svg>
+      </div>
+      <button class="switch" id="apiSwitch" aria-pressed="true" aria-controls="apiDiagram"><span class="lbl-old">BEFORE</span><span class="track" aria-hidden="true"></span><span class="lbl-new">AFTER</span></button>
+
+      <ul class="feat">
+        <li>Every query is tied to a person and filtered by the same access rules as the existing application, replacing shared credentials</li>
+        <li>Rate limits are tuned for AI agents that loop</li>
+        <li>Developers get a guide, an OpenAPI spec, a client library and graded examples in several languages</li>
+        <li>A reference web app shows the API call behind every value on screen, and a test fails if one is missing</li>
+      </ul>
+      <div class="tags">Legacy modernization · REST API · Java · Javalin · OIDC</div>
+    </div>
+
+    <div class="pair">
+      <div class="block">
+        <span class="refdes">02 · CONNECTOR PIN MATCHING</span>
+        <h3>One answer to whether two connector pins match</h3>
+        <div class="prose">
+          <p>When two circuit boards plug together, every pin pair has to agree. I built a central rules service that classifies each pair as identical, equivalent, conflict, related or unrelated, names the rule that decided it and can trace every step.</p>
+          <p>Version 1.0 went up in a week, and user feedback has driven many releases since. A regression suite of real, human-approved pin pairs guards every release.</p>
+        </div>
+        <p class="removed"><span>Friction removed</span>Every design tool used to compare pins its own way.</p>
+        <div class="tags">Rules engine · Java · React · ECAD</div>
+      </div>
+
+      <div class="block">
+        <span class="refdes">03 · PROMOTION DIAGNOSTICS</span>
+        <h3>AI diagnosis for failed product lifecycle promotions</h3>
+        <div class="prose">
+          <p>An MCP server gives an AI agent read-only tools over logs, source code, databases, job scheduler state and PLM transactions, so it can diagnose a failed hardware design promotion from its ID alone. A small Go bridge handles sign-in for the agent client.</p>
+          <p>In the first proof of concept it traced a failure to five interacting causes, a combination nobody would have written a diagnostic rule for.</p>
+        </div>
+        <p class="removed"><span>Friction removed</span>Triage used to need a senior specialist.</p>
+        <div class="tags">MCP · LLM diagnostics · Java · Go</div>
+      </div>
+    </div>
+
+    <div class="pair">
+      <div class="block">
+        <span class="refdes">04 · SYSTEM OF REFERENCE</span>
+        <h3>A system of reference that has to keep proving itself</h3>
+        <div class="prose">
+          <p>A configuration database for engineering applications, hosts, databases and data assets that checks every record again and again against live systems. Observers watch runtime, deployments and source code, and every human assertion has to predict something that should still be observable. When sources disagree, it reports the disagreement instead of picking a winner.</p>
+          <p><em>"Rot is the enemy, observation is the defense, and visible drift is the product."</em></p>
+          <p>It's still a research project. I expect its real value to come from deep, correlated change detection.</p>
+        </div>
+        <p class="removed"><span>Friction removed</span>Hand-kept inventories go stale.</p>
+        <div class="tags">CMDB · Ontology · Go · Java · MCP</div>
+      </div>
+
+      <div class="block">
+        <span class="refdes">05 · PROMOTION TEST DATA</span>
+        <h3>Disposable designs for testing product lifecycle promotion</h3>
+        <div class="prose">
+          <p>Testing the product lifecycle promotion pipeline takes disposable designs that are still plausible PLM submissions, which means they pass every quality check a real promotion to fabrication has to pass. This tooling copies an existing schematic design, performs the one rewrite no supported tool handles and hands the rest back to the official tools.</p>
+        </div>
+        <p class="removed"><span>Friction removed</span>A design can't be promoted twice.</p>
+        <div class="tags">Shell · ECAD · Test tooling</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="lead">
+    <div class="eyebrow"><span class="no">03</span>Leadership</div>
+    <h2>Leading an internal applications team</h2>
+    <div class="prose">
+      <p>I manage a team of software developers who build and run internal applications for hardware engineers, covering PCB request workflow, schematic review, parts data and bills of materials.</p>
+      <p>I'm also product owner for a schematic review application built by an outsourced development team. When a large legacy workflow application lost its developer, I made its recent changes myself through AI agents, using a workflow I wrote that takes each request from intake to a reviewed branch. I also contribute code to other teams' applications.</p>
+    </div>
+  </section>
+
+  <section id="experience">
+    <div class="eyebrow"><span class="no">04</span>Experience</div>
+    <h2>Thirty years in industry</h2>
+    <div class="readouts">
+      <div class="readout"><b>30 yrs</b><span>in industry</span></div>
+      <div class="readout"><b>11+ yrs</b><span>at Apple</span></div>
+      <div class="readout"><b>Months → hours</b><span>map data release time</span></div>
+      <div class="readout"><b>15×</b><span>automated test throughput</span></div>
+    </div>
+    <ol class="bus">
+      <li><span class="yr">2020 · Apple, Hardware Engineering</span><span class="what">Senior manager, software engineering. App modernization and AI applications for hardware engineers.</span></li>
+      <li><span class="yr">2016 · Apple Maps</span><span class="what">High-definition map validation and release engineering, cutting release time from months to hours.</span></li>
+      <li><span class="yr">2015 · Apple</span><span class="what">Established a software validation organization.</span></li>
+      <li><span class="yr">2007 · HP Software</span><span class="what">Application lifecycle management, from forward-deployed engineer to the Office of the CTO.</span></li>
+      <li><span class="yr">2006 · Opsware</span><span class="what">Infrastructure automation for Fortune 500 data centers. Acquired by HP Software.</span></li>
+      <li><span class="yr">2006 · Cydelity</span><span class="what">An early big data company, modeling online banking behavior to detect fraud. Acquired by Digital Envoy.</span></li>
+      <li><span class="yr">2003 · Preventsys</span><span class="what">Brought vulnerability scanners together in one enterprise dashboard. Acquired by McAfee.</span></li>
+      <li><span class="yr">2001 · Guidant</span><span class="what">Data security for an implantable defibrillator. As I put it at the time, <span class="q">"We're putting Linux inside humans. How do you secure that?"</span></span></li>
+      <li><span class="yr">1999 · Medibuy</span><span class="what">Production infrastructure for an early hosted healthcare supply chain platform.</span></li>
+      <li><span class="yr">1995 · Sequent Computer Systems</span><span class="what">First Webmaster at the start of the commercial internet, later responsible for worldwide infrastructure and Y2K remediation.</span></li>
+      <li><span class="yr">1989 · Oregon State University</span><span class="what">Unix administrator, leading a student team that maintained the university's instructional Unix systems.</span></li>
+    </ol>
+  </section>
+
+  <section id="background">
+    <div class="eyebrow"><span class="no">05</span>Background</div>
+    <h2>Montana, Oregon, California</h2>
+    <div class="bg-grid">
+      <div class="prose">
+        <p>I was born in Montana and grew up in Oregon, where I went to Oregon State and earned a B.S. in Liberal Studies with a focus on economics. Most of my computer science came from running the university's Unix systems.</p>
+        <p>My wife and I live in the Bay Area. We have three children. Two are in college, studying agriculture and horses, and our son works in IT.</p>
+        <p>I love every part of California.</p>
+      </div>
+      <figure class="fig"><img src="img/rodeo.jpg" alt="A rider barrel racing on a palomino"><figcaption>Fig. 1 · My daughter, barrel racing</figcaption></figure>
+    </div>
+  </section>
+</div>
+
+<div class="sheet two" id="farm">
+  <div class="eyebrow"><span class="no">06</span>Farm and coffee · 2020 to 2025</div>
+  <h2>Tres Pinos Valley Farm</h2>
+  <figure class="fig farm-hero"><img src="img/farm-aerial.jpg" alt="Aerial view of the five-acre farm with planted rows, the house and the roadside stand"><figcaption>Fig. 2 · Five acres outside Hollister, near Tres Pinos</figcaption></figure>
+
+  <div class="farm-grid">
+    <div class="prose">
+      <p>In 2020, during COVID, we moved to five acres outside Hollister near Tres Pinos. We planted crops and opened a roadside stand selling chicken and duck eggs, pumpkins and cut flowers on the honor system, and later added hardneck garlic, honeybees, tractors and livestock.</p>
+      <p>In 2021 we opened Tres Pinos Valley Farmstand, a 1,200 sq ft store in Tres Pinos that I built out myself. We sold the store in 2025, and it's still open as Daisy's Tres Pinos Farmstand. We sold the farm that same year to move closer to work. Someday I hope to move somewhere affordable and start the farm again.</p>
+    </div>
+    <div class="prose">
+      <h3>Fiore Coffee Company</h3>
+      <p style="margin-top:10px">In 2021 my favorite coffee vendor stopped carrying my favorite beans, so I bought a roaster and started roasting my own. Friends asked for more, then the roadside stand started selling it, then the store. I still roast and sell wholesale to the farmstand.</p>
+      <p><a class="link" href="https://enjoyfiore.com">enjoyfiore.com</a></p>
+      <div class="eyebrow" style="margin-top:26px">Outside of work</div>
+      <ul class="nets" style="margin-top:14px">
+        <li><span class="net">Coffee roasting</span></li><li><span class="net">Maintaining my own cars</span></li><li><span class="net">Farming</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="farm-photos">
+    <figure class="fig"><img src="img/roadside-stand.jpg" alt="The original honor-system roadside stand"><figcaption>Fig. 3 · The roadside stand</figcaption></figure>
+    <figure class="fig"><img src="img/retail-store.jpg" alt="Tres Pinos Valley Farmstand storefront with honey, flowers and eggs signs"><figcaption>Fig. 4 · The store I built out</figcaption></figure>
+    <figure class="fig"><img src="img/tractor.jpg" alt="Chris standing by a Kubota tractor"><figcaption>Fig. 5 · Tractor work</figcaption></figure>
+    <figure class="fig"><img src="img/goat.jpg" alt="Chris holding a young goat"><figcaption>Fig. 6 · Livestock</figcaption></figure>
+  </div>
+
+  <p class="colophon">I built this page the way I build software now. I specified the design, an AI agent wrote the code and I reviewed it.</p>
+</div>
+
+<script>
+// Parts API before/after switch
+const sw = document.getElementById('apiSwitch');
+const ad = document.getElementById('apiDiagram');
+sw.addEventListener('click', () => {
+  const after = sw.getAttribute('aria-pressed') !== 'true';
+  sw.setAttribute('aria-pressed', String(after));
+  ad.classList.toggle('after', after);
+  ad.classList.toggle('before', !after);
+});
+
+// Top bar: mark the section in view
+const links = [...document.querySelectorAll('.index a')];
+const targets = links.map(a => document.querySelector(a.getAttribute('href')));
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (!e.isIntersecting) return;
+    links.forEach(a => a.classList.toggle('on', a.getAttribute('href') === '#' + e.target.id));
+  });
+}, { rootMargin: '-45% 0px -50% 0px' });
+targets.forEach(t => io.observe(t));
+</script>
+</body>
+</html>
